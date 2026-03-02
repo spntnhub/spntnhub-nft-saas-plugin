@@ -150,7 +150,7 @@ class NFT_SaaS_Platform_Settings {
         $api_key = get_option('nft_saas_api_key', '');
         $api_validated = get_option('nft_saas_api_validated_at', 0);
         $authorized_minter = get_option('nft_saas_authorized_minter', '');
-        $min_price = get_option('nft_saas_min_price', '0.01');
+        $min_price = get_option('nft_saas_min_price', '5');
         $min_price_currency = get_option('nft_saas_min_price_currency', 'POL');
         $daily_limit = get_option('nft_saas_daily_limit', '10');
         $enable_marketplace = get_option('nft_saas_enable_marketplace', 0);

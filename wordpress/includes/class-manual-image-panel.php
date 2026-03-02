@@ -226,6 +226,13 @@ class NFT_SaaS_Manual_Image_Panel {
         $http_code = wp_remote_retrieve_response_code( $response );
         $data      = json_decode( wp_remote_retrieve_body( $response ), true );
 
+        if ( $http_code === 401 ) {
+            return new WP_Error(
+                'api_key_invalid',
+                'API Key invalid or inactive. Go to NFT SaaS → Settings, click "Get API Key / Activate" to generate a fresh key, then save.'
+            );
+        }
+
         if ( $http_code !== 200 || empty( $data['success'] ) ) {
             $err_msg = isset( $data['error'] ) ? $data['error'] : 'IPFS upload failed (HTTP ' . $http_code . ')';
             return new WP_Error( 'ipfs_upload_failed', $err_msg );

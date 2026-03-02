@@ -7,7 +7,7 @@ if ( ! defined( 'ABSPATH' ) ) exit;
 
 $api_key      = get_option( 'nft_saas_api_key', '' );
 $wallet       = get_option( 'nft_saas_authorized_minter', '' );
-$platform_url = get_option( 'nft_saas_platform_url', '' );
+$platform_url = get_option( 'nft_saas_platform_url', 'https://nft-saas-production.up.railway.app' );
 $nonce        = wp_create_nonce( 'nft_saas_nonce' );
 ?>
 <div class="wrap">
@@ -21,6 +21,10 @@ $nonce        = wp_create_nonce( 'nft_saas_nonce' );
                 Please configure your API Key and Wallet Address in
                 <a href="<?php echo esc_url( admin_url( 'admin.php?page=nft-saas-settings' ) ); ?>">NFT SaaS → Settings</a> first.
             </p>
+        </div>
+    <?php else : ?>
+        <div id="ms-key-status" style="margin-bottom:12px; padding:10px 14px; border-radius:4px; border:1px solid #ddd; background:#f5f5f5; max-width:480px;">
+            🔄 Checking API Key…
         </div>
     <?php endif; ?>
 
@@ -45,7 +49,7 @@ $nonce        = wp_create_nonce( 'nft_saas_nonce' );
         <table class="form-table" style="margin:0;">
             <tr>
                 <th style="padding:8px 10px 8px 0;"><label for="ms-price">Price (POL/ETH)</label></th>
-                <td><input type="number" id="ms-price" step="0.001" min="0.001" value="0.01" class="small-text"> <code id="ms-currency">POL</code></td>
+                <td><input type="number" id="ms-price" step="1" min="1" value="10" class="small-text"> <code id="ms-currency">POL</code></td>
             </tr>
             <tr>
                 <th style="padding:8px 10px 8px 0;"><label for="ms-wallet-display">Artist Wallet</label></th>
@@ -73,6 +77,37 @@ $nonce        = wp_create_nonce( 'nft_saas_nonce' );
 <script>
 (function($) {
     var currentPage = 1;
+    var platformUrl = '<?php echo esc_js( rtrim( $platform_url, '/' ) ); ?>';
+    var apiKey      = '<?php echo esc_js( $api_key ); ?>';
+
+    // ── Key status check on load ──────────────────────────────────────────────
+    if (apiKey && platformUrl) {
+        $.ajax({
+            url:     platformUrl + '/api/auth/key-info',
+            method:  'GET',
+            timeout: 8000,
+            headers: { 'X-API-Key': apiKey },
+        })
+        .done(function(res) {
+            if (res.success && res.walletAddress) {
+                $('#ms-key-status')
+                    .css({ background:'#d4edda', color:'#155724', borderColor:'#c3e6cb' })
+                    .html('✅ <strong>API Key valid</strong> — connected as <code>' + res.walletAddress + '</code>');
+            } else {
+                showKeyError();
+            }
+        })
+        .fail(function() { showKeyError(); });
+    }
+
+    function showKeyError() {
+        var settingsUrl = '<?php echo esc_js( admin_url( "admin.php?page=nft-saas-settings" ) ); ?>';
+        $('#ms-key-status')
+            .css({ background:'#f8d7da', color:'#721c24', borderColor:'#f5c6cb' })
+            .html('❌ <strong>API Key invalid or not found.</strong> '
+                + 'Go to <a href="' + settingsUrl + '">NFT SaaS → Settings</a>, '
+                + 'click <strong>Get API Key / Activate</strong>, then save settings.');
+    }
 
     // ── Load Images ───────────────────────────────────────────────────────────
     function loadImages(page) {

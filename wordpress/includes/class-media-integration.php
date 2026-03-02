@@ -53,12 +53,12 @@ class NFT_SaaS_Media_Integration {
         );
 
         // Price
-        $price = get_post_meta( $post->ID, '_nft_price', true ) ?: '0.01';
+        $price = get_post_meta( $post->ID, '_nft_price', true ) ?: '10';
         $form_fields['nft_price'] = array(
             'label' => __( 'Price (POL/ETH)', 'nft-saas' ),
             'input' => 'text',
             'value' => esc_attr( $price ),
-            'helps' => 'Sale price in native chain currency (e.g. 0.01).',
+            'helps' => 'Sale price in native chain currency. Minimum 1 POL (~$0.10). Suggested: 10–50 POL for digital art.',
         );
 
         // Blockchain / Chain
@@ -186,7 +186,7 @@ class NFT_SaaS_Media_Integration {
             'render_callback' => array( $this, 'render_nft_block_callback' ),
             'attributes' => array(
                 'mediaID' => array( 'type' => 'number', 'default' => 0 ),
-                'price' => array( 'type' => 'string', 'default' => '0.01' )
+                'price' => array( 'type' => 'string', 'default' => '10' )
             )
         ) );
     }
@@ -278,7 +278,7 @@ class NFT_SaaS_Media_Integration {
         }
 
         $price = get_post_meta( $target_id, '_nft_price', true );
-        if ( ! $price ) $price = '0.01';
+        if ( ! $price ) $price = '10';
 
         // Prefer IPFS tokenURI, fall back to attachment URL
         $token_uri = get_post_meta( $target_id, '_nft_token_uri', true );
