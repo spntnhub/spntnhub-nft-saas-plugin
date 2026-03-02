@@ -236,9 +236,19 @@ $jsData = htmlspecialchars( json_encode([
             }];
             var contract = new web3.eth.Contract(abi, data.contractAddress);
 
+            // Gas: fetch current price and enforce 30 gwei floor (Polygon min is 25 gwei)
+            var GAS_FLOOR = 30000000000;
+            var gasOpts = { from: buyer, value: priceWei };
+            try {
+                var gpRaw = await web3.eth.getGasPrice();
+                var tip   = Math.max(Number(gpRaw), GAS_FLOOR);
+                gasOpts.maxPriorityFeePerGas = String(tip);
+                gasOpts.maxFeePerGas         = String(tip * 2);
+            } catch(gasErr) { /* MetaMask fallback */ }
+
             await contract.methods
                 .buyAndMint(data.creator, data.uri, priceWei, signature)
-                .send({ from: buyer, value: priceWei })
+                .send(gasOpts)
                 .on('transactionHash', function(hash) {
                     msg.innerText  = 'Submitted — waiting for confirmation…';
                     txEl.innerHTML = '<a href="' + data.chain.explorerUrl + '/tx/' + hash + '" target="_blank" style="color:#0070f3;">View on ' + data.chain.chainName + ' ↗</a>';

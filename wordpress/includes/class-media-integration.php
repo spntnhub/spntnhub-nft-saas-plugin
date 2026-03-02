@@ -541,8 +541,21 @@ class NFT_SaaS_Media_Integration {
                         const abi      = [{ "inputs":[{"internalType":"address","name":"artist","type":"address"},{"internalType":"string","name":"tokenURI","type":"string"},{"internalType":"uint256","name":"price","type":"uint256"},{"internalType":"bytes","name":"signature","type":"bytes"}],"name":"buyAndMint","outputs":[],"stateMutability":"payable","type":"function" }];
                         const contract = new web3.eth.Contract(abi, data.contractAddress);
 
+                        // ── Gas: fetch current price and enforce chain minimum ──────────
+                        // Polygon requires maxPriorityFeePerGas ≥ 25 gwei (as of 2025).
+                        // We query the node and apply a 30 gwei floor so the tx is never
+                        // rejected with "gas tip cap below minimum".
+                        const GAS_FLOOR = 30000000000; // 30 gwei
+                        let gasOpts = { from: buyer, value: priceWei };
+                        try {
+                            const gpRaw = await web3.eth.getGasPrice();
+                            const tip   = Math.max(Number(gpRaw), GAS_FLOOR);
+                            gasOpts.maxPriorityFeePerGas = String(tip);
+                            gasOpts.maxFeePerGas         = String(tip * 2);
+                        } catch(gasErr) { /* MetaMask fallback — better than nothing */ }
+
                         await contract.methods.buyAndMint(data.creator, data.uri, priceWei, signature)
-                            .send({ from: buyer, value: priceWei })
+                            .send(gasOpts)
                             .on("transactionHash", function(hash) {
                                 msg.innerText = "Sent! Waiting for confirmation...";
                                 linkDiv.innerHTML = "<a href=\'" + data.chain.explorerUrl + "/tx/" + hash + "\' target=\'_blank\'>View on " + data.chain.chainName + " ↗</a>";
