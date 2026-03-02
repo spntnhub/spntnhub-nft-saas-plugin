@@ -361,23 +361,16 @@ class NFT_SaaS_Media_Integration {
         $currency = esc_html( $cfg['currency'] );
 
         $button = '
-        <div id="nft-buy-container-' . $target_id . '" class="nft-buy-container" style="margin:20px 0; padding:20px; border:1px solid #eee; border-radius:8px; text-align:center; background:#f9f9f9;">
-            <h3 style="margin-top:0;">💎 Collect this Digital Art</h3>
-            <p style="font-size:1.2rem; font-weight:bold;">Price: ' . esc_html( $price ) . ' ' . $currency . '</p>
-            <p style="font-size:0.75em; color:#888; margin:0 0 6px;" class="nft-chain-badge">
-                Network: ' . esc_html( $cfg['chainName'] ) . '
-                <span class="nft-network-status" style="margin-left:6px;"></span>
-            </p>
-
-            <button class="button button-primary nft-buy-btn" onclick=\'buyNft(' . $buy_data . ')\' style="font-size:1.1rem; padding:10px 30px; height:auto; cursor:pointer;">
-                Buy Now (Mint)
-            </button>
-
-            <p style="font-size:0.8em; color:#666; margin-top:10px;">
-                Instant delivery to your wallet. You pay gas fees.
-            </p>
-            <div class="nft-status-msg" style="margin-top:10px; font-weight:bold; min-height:20px;"></div>
-            <div class="nft-tx-link" style="margin-top:10px;"></div>
+        <div id="nft-buy-container-' . $target_id . '" class="nft-buy-container" style="display:inline-flex;flex-direction:column;gap:5px;margin:8px 0 16px;max-width:100%;">
+            <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;">
+                <button class="nft-buy-btn" onclick=\'buyNft(' . $buy_data . ')\' style="display:inline-flex;align-items:center;gap:6px;background:#111;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer;white-space:nowrap;line-height:1.4;">
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
+                    Collect &mdash; ' . esc_html( $price ) . '&thinsp;' . $currency . '
+                </button>
+                <span style="font-size:0.72rem;color:#aaa;white-space:nowrap;">' . esc_html( $cfg['chainName'] ) . '<span class="nft-network-status" style="margin-left:4px;"></span></span>
+            </div>
+            <div class="nft-status-msg" style="font-size:0.78rem;font-weight:500;color:#555;"></div>
+            <div class="nft-tx-link" style="font-size:0.72rem;"></div>
         </div>
 
         <script>
