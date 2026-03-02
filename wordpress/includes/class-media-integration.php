@@ -61,6 +61,16 @@ class NFT_SaaS_Media_Integration {
             'helps' => 'Sale price in native chain currency. Minimum 1 POL (~$0.10). Suggested: 10–50 POL for digital art.',
         );
 
+        // Number of Editions (supply)
+        $supply     = get_post_meta( $post->ID, '_nft_supply', true ) ?: '1';
+        $sold_count = intval( get_post_meta( $post->ID, '_nft_sold_count', true ) ?: 0 );
+        $form_fields['nft_supply'] = array(
+            'label' => __( 'Editions', 'nft-saas' ),
+            'input' => 'html',
+            'html'  => '<input type="number" name="attachments[' . $post->ID . '][nft_supply]" value="' . esc_attr( $supply ) . '" min="1" step="1" style="width:80px;"> <span style="color:#666; font-size:0.85em;">' . $sold_count . ' sold so far</span>',
+            'helps' => '1 = unique 1-of-1. Higher = limited edition (e.g. 5 copies, each minted separately).',
+        );
+
         // Blockchain / Chain
         $chain         = get_post_meta( $post->ID, '_nft_chain', true ) ?: 'polygon';
         $chain_options = array(
@@ -135,6 +145,11 @@ class NFT_SaaS_Media_Integration {
             update_post_meta( $id, '_nft_description', sanitize_textarea_field( $attachment['nft_description'] ) );
         }
 
+        // Number of Editions (supply)
+        if ( isset( $attachment['nft_supply'] ) ) {
+            update_post_meta( $id, '_nft_supply', max( 1, intval( $attachment['nft_supply'] ) ) );
+        }
+
         return $post;
     }
 
@@ -161,11 +176,28 @@ class NFT_SaaS_Media_Integration {
             return;
         }
 
-        update_post_meta( $attachment_id, '_nft_is_sold', '1' );
+        $supply     = intval( get_post_meta( $attachment_id, '_nft_supply',     true ) ?: 1 );
+        $sold_count = intval( get_post_meta( $attachment_id, '_nft_sold_count', true ) ?: 0 );
+        $new_count  = $sold_count + 1;
+
+        update_post_meta( $attachment_id, '_nft_sold_count', $new_count );
+        // Keep _nft_tx_hash as the latest tx; also store per-sale index
         update_post_meta( $attachment_id, '_nft_tx_hash', $tx_hash );
+        update_post_meta( $attachment_id, '_nft_tx_hash_' . $new_count, $tx_hash );
         update_post_meta( $attachment_id, '_nft_sold_at', current_time( 'mysql' ) );
 
-        wp_send_json_success( array( 'message' => 'NFT marked as sold' ) );
+        // Mark permanently sold only when all editions are exhausted
+        $remaining = $supply - $new_count;
+        if ( $remaining <= 0 ) {
+            update_post_meta( $attachment_id, '_nft_is_sold', '1' );
+        }
+
+        wp_send_json_success( array(
+            'message'   => 'NFT sale recorded',
+            'sold'      => $new_count,
+            'supply'    => $supply,
+            'remaining' => max( 0, $remaining ),
+        ) );
     }
 
     /**
@@ -267,14 +299,22 @@ class NFT_SaaS_Media_Integration {
      * Generates the HTML for the Buy Button
      */
     private function generate_buy_button_html( $target_id ) {
-        $is_sold = get_post_meta( $target_id, '_nft_is_sold', true );
+        $supply     = intval( get_post_meta( $target_id, '_nft_supply',     true ) ?: 1 );
+        $sold_count = intval( get_post_meta( $target_id, '_nft_sold_count', true ) ?: 0 );
+        $remaining  = $supply - $sold_count;
 
-        if ( $is_sold ) {
+        if ( $remaining <= 0 ) {
             $tx_hash = get_post_meta( $target_id, '_nft_tx_hash', true );
+            $chain   = get_post_meta( $target_id, '_nft_chain', true ) ?: 'polygon';
+            $explorer_base = ( $chain === 'ethereum' ) ? 'https://etherscan.io' :
+                             ( $chain === 'base' )     ? 'https://basescan.org' :
+                             ( $chain === 'sepolia' )  ? 'https://sepolia.etherscan.io' :
+                                                        'https://polygonscan.com';
             $explorer = $tx_hash
-                ? ' <a href="https://polygonscan.com/tx/' . esc_attr( $tx_hash ) . '" target="_blank" style="font-size:0.75em; color:#155724;">View on-chain ↗</a>'
+                ? ' <a href="' . esc_attr( $explorer_base ) . '/tx/' . esc_attr( $tx_hash ) . '" target="_blank" style="color:inherit;opacity:0.7;">View on-chain ↗</a>'
                 : '';
-            return '<div class="nft-sold-badge" style="background:#d4edda; color:#155724; padding:10px; text-align:center; border-radius:4px; margin:20px 0;">✅ This NFT has been collected.' . $explorer . '</div>';
+            $edition_label = $supply > 1 ? ' — all ' . $supply . ' editions sold' : '';
+            return '<p class="nft-sold-badge" style="font-size:0.82rem;color:#555;margin:4px 0 12px;">✅ Collected' . $edition_label . '.' . $explorer . '</p>';
         }
 
         $price = get_post_meta( $target_id, '_nft_price', true );
@@ -356,18 +396,25 @@ class NFT_SaaS_Media_Integration {
             'chain'           => $cfg,
             'ajaxUrl'         => admin_url( 'admin-ajax.php' ),
             'nonce'           => wp_create_nonce( 'nft_saas_buy_nonce' ),
+            'supply'          => $supply,
+            'soldCount'       => $sold_count,
         ) ), ENT_QUOTES, 'UTF-8' );
 
         $currency = esc_html( $cfg['currency'] );
+
+        // Editions label — only shown when supply > 1
+        $editions_html = $supply > 1
+            ? '<span class="nft-editions-remaining" style="font-size:0.72rem;color:#888;">' . $remaining . ' of ' . $supply . ' remaining</span>'
+            : '';
 
         $button = '
         <div id="nft-buy-container-' . $target_id . '" class="nft-buy-container" style="display:inline-flex;flex-direction:column;gap:5px;margin:8px 0 16px;max-width:100%;">
             <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;">
                 <button class="nft-buy-btn" onclick=\'buyNft(' . $buy_data . ')\' style="display:inline-flex;align-items:center;gap:6px;background:#111;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer;white-space:nowrap;line-height:1.4;">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>
-                    Collect &mdash; ' . esc_html( $price ) . '&thinsp;' . $currency . '
+                    Buy this NFT &mdash; ' . esc_html( $price ) . '&thinsp;' . $currency . '
                 </button>
                 <span style="font-size:0.72rem;color:#aaa;white-space:nowrap;">' . esc_html( $cfg['chainName'] ) . '<span class="nft-network-status" style="margin-left:4px;"></span></span>
+                ' . $editions_html . '
             </div>
             <div class="nft-status-msg" style="font-size:0.78rem;font-weight:500;color:#555;"></div>
             <div class="nft-tx-link" style="font-size:0.72rem;"></div>
@@ -554,24 +601,43 @@ class NFT_SaaS_Media_Integration {
                                 linkDiv.innerHTML = "<a href=\'" + data.chain.explorerUrl + "/tx/" + hash + "\' target=\'_blank\'>View on " + data.chain.chainName + " ↗</a>";
                             })
                             .on("receipt", async function(receipt) {
-                                btn.innerText   = "✅ Purchased!";
-                                msg.innerText   = "Successfully minted!";
-                                msg.style.color = "green";
-                                // Clear cached sig (NFT is sold, no point keeping it)
-                                delete _NFT_SIG_CACHE[sigCacheKey];
-                                try { sessionStorage.removeItem(sigCacheKey); } catch(e) {}
-                                // Notify WordPress
+                                // Notify WordPress first to get remaining count
+                                let remaining = 0;
                                 try {
                                     const fd = new FormData();
                                     fd.append("action",  "nft_saas_mark_as_sold");
                                     fd.append("nonce",   data.nonce);
                                     fd.append("id",      data.id);
                                     fd.append("tx_hash", receipt.transactionHash || "");
-                                    await fetch(data.ajaxUrl, { method: "POST", body: fd });
+                                    const r = await fetch(data.ajaxUrl, { method: "POST", body: fd });
+                                    const json = await r.json();
+                                    if (json.success) remaining = json.data.remaining || 0;
                                 } catch(e) {}
-                                setTimeout(function() {
-                                    container.innerHTML = "<div style=\'background:#d4edda;color:#155724;padding:10px;text-align:center;border-radius:4px;\'>✅ This NFT has been collected.</div>";
-                                }, 2000);
+
+                                // Clear cached sig
+                                delete _NFT_SIG_CACHE[sigCacheKey];
+                                try { sessionStorage.removeItem(sigCacheKey); } catch(e) {}
+
+                                if (remaining <= 0) {
+                                    // All editions sold — show final badge
+                                    const editionNote = data.supply > 1 ? " — all " + data.supply + " editions sold" : "";
+                                    setTimeout(function() {
+                                        container.innerHTML = "<p style=\"font-size:0.82rem;color:#555;margin:4px 0 12px;\">✅ Collected" + editionNote + ".</p>";
+                                    }, 1500);
+                                    btn.innerText   = "✅ Sold!";
+                                    msg.innerText   = "Successfully minted! All editions are now sold.";
+                                    msg.style.color = "green";
+                                } else {
+                                    // Still editions available — re-enable button
+                                    const remainingEl = container.querySelector(".nft-editions-remaining");
+                                    if (remainingEl) remainingEl.textContent = remaining + " of " + data.supply + " remaining";
+                                    btn.disabled    = false;
+                                    btn.innerText   = "Buy this NFT \u2014 " + data.price + "\u202f" + data.chain.currency;
+                                    msg.innerText   = "✅ Minted! " + remaining + " edition" + (remaining === 1 ? "" : "s") + " still available.";
+                                    msg.style.color = "green";
+                                    // Update local soldCount for next buyer
+                                    data.soldCount = data.supply - remaining;
+                                }
                             });
 
                     } catch (err) {
