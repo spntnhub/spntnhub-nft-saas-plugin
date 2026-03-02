@@ -220,34 +220,47 @@ class NFT_SaaS_Media_Integration {
     }
 
     /**
-     * Frontend: Add Buy Button to Images/Attachments
+     * Frontend: Add Buy Button after NFT images embedded in post content.
+     *
+     * Scans for <img class="wp-image-{ID}"> tags that have _nft_is_for_sale set,
+     * then injects the buy button HTML right after the closing </figure> (or <img>).
+     * Works on all public pages/posts — not just single/attachment.
      */
     public function add_buy_button_to_content( $content ) {
-        // Only run on attachment pages or where appropriate
-        if ( ! is_singular( 'attachment' ) && ! is_single() ) {
+        if ( is_admin() || ! is_main_query() ) {
             return $content;
         }
-        
-        global $post;
-        $target_id = $post->ID;
-        
-        // Logic to determine target ID based on post type
-        if ( has_post_thumbnail( $post->ID ) ) {
-            $thumb_id = get_post_thumbnail_id( $post->ID );
-            $is_thumb_sale = get_post_meta( $thumb_id, '_nft_is_for_sale', true );
-            
-            if ( $is_thumb_sale ) {
-                $target_id = $thumb_id; 
-            } else {
-                 $is_for_sale = get_post_meta( $post->ID, '_nft_is_for_sale', true );
-                 if ( ! $is_for_sale ) return $content;
-            }
-        } else {
-             $is_for_sale = get_post_meta( $post->ID, '_nft_is_for_sale', true );
-             if ( ! $is_for_sale ) return $content;
+
+        // Find every occurrence of wp-image-{ID} in the content
+        if ( ! preg_match_all( '/wp-image-(\d+)/', $content, $matches ) ) {
+            return $content;
         }
 
-        return $content . $this->generate_buy_button_html( $target_id );
+        $seen = array();
+        foreach ( array_unique( $matches[1] ) as $attachment_id ) {
+            $attachment_id = intval( $attachment_id );
+            if ( isset( $seen[ $attachment_id ] ) ) continue;
+            $seen[ $attachment_id ] = true;
+
+            $is_for_sale = get_post_meta( $attachment_id, '_nft_is_for_sale', true );
+            $is_sold     = get_post_meta( $attachment_id, '_nft_is_sold',     true );
+            if ( ! $is_for_sale ) continue;
+
+            $buy_html = $this->generate_buy_button_html( $attachment_id );
+
+            // Try to insert after the wrapping <figure> block that contains this image.
+            // Gutenberg wraps images in <figure class="wp-block-image ...">...</figure>
+            $pattern = '/(<figure[^>]*class="[^"]*wp-block-image[^"]*"[^>]*>(?:(?!<\/figure>).)*wp-image-' . $attachment_id . '(?:(?!<\/figure>).)*<\/figure>)/si';
+            if ( preg_match( $pattern, $content ) ) {
+                $content = preg_replace( $pattern, '$1' . $buy_html, $content, 1 );
+            } else {
+                // Classic editor: insert after the <img> tag itself
+                $img_pattern = '/(<img[^>]*class="[^"]*wp-image-' . $attachment_id . '[^"]*"[^>]*\/?>)/i';
+                $content = preg_replace( $img_pattern, '$1' . $buy_html, $content, 1 );
+            }
+        }
+
+        return $content;
     }
 
     /**
