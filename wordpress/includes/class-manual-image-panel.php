@@ -161,56 +161,8 @@ class NFT_SaaS_Manual_Image_Panel {
     // -------------------------------------------------------------------------
 
     /**
-     * Retrieve a JWT token from the NFT platform backend.
-     * The token is cached in a transient for 4 minutes to avoid login spam.
-     *
-     * @return string|false JWT string or false on failure.
-     */
-    private function get_jwt_token() {
-        $cached = get_transient( 'nft_saas_jwt_token' );
-        if ( $cached ) {
-            return $cached;
-        }
-
-        $api_url = rtrim( get_option( 'nft_saas_platform_url', 'https://nft-saas-production.up.railway.app' ), '/' );
-        $api_key = get_option( 'nft_saas_api_key', '' );
-        $wallet  = get_option( 'nft_saas_authorized_minter', '' );
-
-        if ( empty( $api_key ) || empty( $wallet ) ) {
-            return false;
-        }
-
-        $response = wp_remote_post(
-            $api_url . '/api/auth/login',
-            array(
-                'method'  => 'POST',
-                'headers' => array(
-                    'Content-Type'           => 'application/json',
-                    'Bypass-Tunnel-Reminder' => 'true',
-                ),
-                'body'    => wp_json_encode( array(
-                    'walletAddress' => $wallet,
-                    'apiKey'        => $api_key,
-                ) ),
-                'timeout' => 10,
-            )
-        );
-
-        if ( is_wp_error( $response ) ) {
-            return false;
-        }
-
-        $body = json_decode( wp_remote_retrieve_body( $response ), true );
-        if ( empty( $body['token'] ) ) {
-            return false;
-        }
-
-        set_transient( 'nft_saas_jwt_token', $body['token'], 4 * MINUTE_IN_SECONDS );
-        return $body['token'];
-    }
-
-    /**
      * Upload a WordPress attachment to IPFS via the backend /api/ipfs/upload-nft endpoint.
+     * Uses X-API-Key header (no JWT login required).
      *
      * @param int   $image_id WordPress attachment ID.
      * @param float $price    Sale price (stored as NFT attribute metadata).
@@ -222,12 +174,13 @@ class NFT_SaaS_Manual_Image_Panel {
             return new WP_Error( 'file_not_found', 'Attachment file not found on disk.' );
         }
 
-        $jwt = $this->get_jwt_token();
-        if ( ! $jwt ) {
-            return new WP_Error( 'auth_failed', 'Could not authenticate with NFT platform. Please verify your API Key and Wallet settings.' );
+        $api_url = rtrim( get_option( 'nft_saas_platform_url', 'https://nft-saas-production.up.railway.app' ), '/' );
+        $api_key = get_option( 'nft_saas_api_key', '' );
+
+        if ( empty( $api_key ) ) {
+            return new WP_Error( 'auth_failed', 'API Key is not configured. Please go to NFT SaaS → Settings and save your API Key.' );
         }
 
-        $api_url   = rtrim( get_option( 'nft_saas_platform_url', 'https://nft-saas-production.up.railway.app' ), '/' );
         $mime_type = mime_content_type( $file_path );
         $filename  = basename( $file_path );
         $post      = get_post( $image_id );
@@ -244,10 +197,10 @@ class NFT_SaaS_Manual_Image_Panel {
         $body .= "Content-Type: {$mime_type}\r\n\r\n";
         $body .= file_get_contents( $file_path ) . "\r\n";
 
-        // Text fields
-        foreach ( array( 'nftName' => $nft_name, 'description' => $desc, 'price' => (string) $price ) as $name => $value ) {
+        // Text fields — route expects 'name' and 'description'
+        foreach ( array( 'name' => $nft_name, 'description' => $desc, 'price' => (string) $price ) as $field => $value ) {
             $body .= "--{$boundary}\r\n";
-            $body .= "Content-Disposition: form-data; name=\"{$name}\"\r\n\r\n";
+            $body .= "Content-Disposition: form-data; name=\"{$field}\"\r\n\r\n";
             $body .= $value . "\r\n";
         }
         $body .= "--{$boundary}--\r\n";
@@ -258,7 +211,7 @@ class NFT_SaaS_Manual_Image_Panel {
                 'method'  => 'POST',
                 'headers' => array(
                     'Content-Type'           => "multipart/form-data; boundary={$boundary}",
-                    'Authorization'          => "Bearer {$jwt}",
+                    'X-API-Key'              => $api_key,
                     'Bypass-Tunnel-Reminder' => 'true',
                 ),
                 'body'    => $body,
