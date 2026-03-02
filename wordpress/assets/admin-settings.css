@@ -1,0 +1,215 @@
+/* NFT SaaS — Admin Settings Styles */
+
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+.nft-saas-settings-wrap {
+    max-width: 1200px;
+}
+
+.nft-saas-header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: #fff;
+    padding: 24px 28px;
+    border-radius: 8px;
+    margin-bottom: 24px;
+}
+
+.nft-saas-header h1 {
+    margin: 0 0 6px;
+    font-size: 24px;
+    color: #fff;
+}
+
+.nft-saas-header .subtitle {
+    margin: 0;
+    opacity: 0.85;
+    font-size: 14px;
+}
+
+.nft-saas-container {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+}
+
+.nft-saas-main {
+    flex: 1;
+    min-width: 0;
+}
+
+.nft-saas-sidebar {
+    width: 280px;
+    flex-shrink: 0;
+}
+
+/* ── Form sections ───────────────────────────────────────────────────────── */
+.form-section {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px 24px;
+    margin-bottom: 20px;
+}
+
+.form-section h2 {
+    margin: 0 0 16px;
+    font-size: 16px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+}
+
+.form-section.info-box {
+    background: #f0f4ff;
+    border-color: #c0cff8;
+}
+
+.nft-saas-form .form-table th {
+    width: 200px;
+    padding: 12px 10px 12px 0;
+    vertical-align: top;
+}
+
+.nft-saas-form .form-table td {
+    padding: 10px 0;
+}
+
+/* ── API Key status badges ───────────────────────────────────────────────── */
+.status-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+    margin: 6px 0 8px;
+}
+
+.status-valid {
+    background: #d4edda;
+    color: #155724;
+    border: 1px solid #c3e6cb;
+}
+
+.status-warning {
+    background: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+}
+
+.status-error {
+    background: #f8d7da;
+    color: #721c24;
+    border: 1px solid #f5c6cb;
+}
+
+.api-key-status {
+    margin-bottom: 8px;
+}
+
+/* ── Sidebar boxes ───────────────────────────────────────────────────────── */
+.sidebar-box {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 16px 18px;
+    margin-bottom: 16px;
+}
+
+.sidebar-box h3 {
+    margin: 0 0 12px;
+    font-size: 14px;
+    border-bottom: 1px solid #f0f0f0;
+    padding-bottom: 8px;
+}
+
+.sidebar-box ul {
+    margin: 0;
+    padding-left: 18px;
+}
+
+.sidebar-box ul li {
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.sidebar-box.info {
+    background: #f8f9fa;
+    border-color: #dee2e6;
+}
+
+/* ── Quick stats (sidebar) ───────────────────────────────────────────────── */
+.sidebar-box p strong {
+    display: inline-block;
+    min-width: 110px;
+    color: #444;
+}
+
+/* ── Analytics grid ─────────────────────────────────────────────────────── */
+.nft-saas-analytics {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.stat-card {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+}
+
+.stat-card h3 {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: #666;
+    font-weight: 500;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: 700;
+    color: #764ba2;
+}
+
+/* ── NFT list table ──────────────────────────────────────────────────────── */
+.status-active   { background: #d4edda; color: #155724; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+.status-sold     { background: #f8d7da; color: #721c24; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+.status-pending  { background: #fff3cd; color: #856404; padding: 3px 8px; border-radius: 12px; font-size: 12px; }
+
+/* ── Registration modal overlay ─────────────────────────────────────────── */
+#nft-register-modal input.large-text {
+    box-sizing: border-box;
+}
+
+#nft-register-modal h2 {
+    font-size: 18px;
+}
+
+/* ── Info/warning boxes inside forms ────────────────────────────────────── */
+.info-box {
+    background: #e6f7ff;
+    border-left: 4px solid #1890ff;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 0 4px 4px 0;
+}
+
+.info-box h4 {
+    margin-top: 0;
+    color: #003a8c;
+}
+
+.info-box ul {
+    margin-bottom: 0;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 900px) {
+    .nft-saas-container {
+        flex-direction: column;
+    }
+
+    .nft-saas-sidebar {
+        width: 100%;
+    }
+}

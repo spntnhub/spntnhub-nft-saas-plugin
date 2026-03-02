@@ -1,0 +1,84 @@
+title: NFT Image
+accept:
+  mime: image/*
+
+tabs:
+  content:
+    label: File
+    fields:
+      caption:
+        type: text
+        label: Caption
+
+  nft:
+    label: 🎨 NFT
+    fields:
+
+      nft_headline:
+        type: headline
+        label: NFT Listing
+
+      nft_is_for_sale:
+        type: toggle
+        label: List for Sale
+        help: "Enable the Buy Now button for this image."
+        default: false
+        text:
+          - Not listed
+          - Listed for sale
+
+      nft_price:
+        type: number
+        label: Price (POL / ETH)
+        default: 0.01
+        min: 0.001
+        step: 0.001
+        help: "Sale price in native currency of the chosen chain."
+        when:
+          nft_is_for_sale: true
+
+      nft_chain:
+        type: select
+        label: Blockchain
+        default: polygon
+        options:
+          polygon: "Polygon (POL) — Mainnet"
+          ethereum: "Ethereum (ETH) — Mainnet"
+          base: "Base (ETH) — Mainnet"
+          sepolia: "Sepolia (ETH) — Testnet"
+        when:
+          nft_is_for_sale: true
+
+      nft_description:
+        type: textarea
+        label: NFT Description
+        help: "Stored in IPFS metadata."
+        when:
+          nft_is_for_sale: true
+
+      nft_divider:
+        type: line
+
+      nft_status_headline:
+        type: headline
+        label: Sale Status
+
+      nft_is_sold:
+        type: toggle
+        label: Sold
+        default: false
+        text:
+          - Available
+          - Sold ✅
+
+      nft_tx_hash:
+        type: text
+        label: Transaction Hash
+        help: "On-chain transaction hash after a successful sale."
+        placeholder: "0x…"
+
+      nft_token_uri:
+        type: text
+        label: IPFS Token URI
+        help: "Auto-filled after IPFS upload. Do not edit manually."
+        placeholder: "ipfs://…"
