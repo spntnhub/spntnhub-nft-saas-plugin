@@ -2,7 +2,6 @@
 *.DS_Store
 [.]!*[!].DS_Store
 *.zip
-!nft-saas.zip
 *.tmp
 Thumbs.db
 *.log
