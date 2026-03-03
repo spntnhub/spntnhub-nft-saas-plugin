@@ -406,8 +406,8 @@ class NFT_SaaS_Platform_Settings {
                                 <tr>
                                     <th scope="row">Polygon Mainnet</th>
                                     <td>
-                                        <code>0x1AFd1b0D36Db1bb8E9Cc0f359e37A76313270837</code>
-                                        <p class="description">✅ Active — pre-configured</p>
+                                        <code>0xF912D97BB2fF635c3D432178e46A16930B5Af51A</code>
+                                        <p class="description">✅ Active — pre-configured (MultiToken v2: POL + USDC + USDT, 3% fee)</p>
                                     </td>
                                 </tr>
                                 <tr>

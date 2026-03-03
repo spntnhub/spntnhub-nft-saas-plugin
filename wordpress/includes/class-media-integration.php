@@ -452,7 +452,7 @@ class NFT_SaaS_Media_Integration {
                 'rpcUrl'          => 'https://polygon-rpc.com',
                 'currency'        => 'POL',
                 'explorerUrl'     => 'https://polygonscan.com',
-                'contractAddress' => '0x1AFd1b0D36Db1bb8E9Cc0f359e37A76313270837',
+                'contractAddress' => '0xF912D97BB2fF635c3D432178e46A16930B5Af51A',
             ),
             'ethereum' => array(
                 'chainId'         => '0x1',
