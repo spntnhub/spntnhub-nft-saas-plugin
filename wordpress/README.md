@@ -20,8 +20,8 @@ Sell your digital art as NFTs directly from WordPress. Buyers pay on-chain — y
 
 - **Lazy minting** — NFTs are minted on-chain only when someone buys. No upfront cost for you.
 - **Buyer pays gas** — all transaction fees are paid by the buyer at purchase time.
-- **Instant payout** — 98% of the sale amount goes directly to your wallet via the smart contract.
-- **2% royalty** — automatically collected by the platform on every sale and resale (ERC-2981).
+- **Instant payout** — 97% of the sale amount goes directly to your wallet via the smart contract. Platform keeps 3%.
+- **3% platform fee** — automatically collected on every sale, on-chain (POL, USDC, USDT). Artist receives 97%.
 
 ---
 

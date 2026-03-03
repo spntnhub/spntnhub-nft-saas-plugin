@@ -8,7 +8,7 @@ Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Sell your artwork as NFTs directly from WordPress. No gas fees for artists — buyers pay at purchase. Platform earns 2% commission.
+Sell your artwork as NFTs directly from WordPress. No gas fees for artists — buyers pay at purchase. Accepts POL, USDC, USDT. Platform earns 3% fee.
 
 == Description ==
 
@@ -21,7 +21,7 @@ Sell your artwork as NFTs directly from WordPress. No gas fees for artists — b
 3. The plugin generates a buy button on your posts/pages
 4. A buyer clicks **Buy Now**, connects MetaMask, and pays
 5. The NFT is minted on-chain in the same transaction
-6. **98% goes to you, 2% goes to the platform — automatically, on-chain**
+6. **97% goes to you, 3% goes to the platform — automatically, on-chain**
 
 = Key features =
 
@@ -57,7 +57,7 @@ No. Listing is completely free. The NFT is only minted (and gas is paid by the b
 
 = What percentage do I earn per sale? =
 
-98% of every sale goes directly to your wallet address. The platform takes 2% automatically through the smart contract.
+97% of every sale goes directly to your wallet address. The platform takes 3% automatically through the smart contract (POL, USDC, or USDT accepted).
 
 = Which wallets are supported? =
 
@@ -92,7 +92,7 @@ The buy button will prompt them to install MetaMask. Wallet-less purchasing is n
 * One-click plugin activation
 * MetaMask buy flow with auto network switch
 * Redis-cached signatures for fast buy button load
-* 2% on-chain platform commission (ERC2981)
+* 3% on-chain platform fee (POL, USDC, USDT — Polygon Mainnet)
 
 == Upgrade Notice ==
 

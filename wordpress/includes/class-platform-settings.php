@@ -168,7 +168,7 @@ class NFT_SaaS_Platform_Settings {
         <div class="wrap nft-saas-settings-wrap">
             <div class="nft-saas-header">
                 <h1>🎨 NFT SaaS - Hybrid Model Settings</h1>
-                <p class="subtitle">Manage, control, and earn 2% royalty</p>
+                <p class="subtitle">Manage, control, and earn 3% platform fee</p>
             </div>
             
             <div class="nft-saas-container">
@@ -260,7 +260,7 @@ class NFT_SaaS_Platform_Settings {
                                             style="background:#f6f6f6; cursor:default;"
                                         >
                                         <p class="description">
-                                            Your wallet where <strong>98% of every NFT sale</strong> is sent automatically.
+                                            Your wallet where <strong>97% of every NFT sale</strong> is sent automatically.
                                             Synced from your account — to change it, update your wallet in the NFT SaaS dashboard.
                                             <span id="wallet-sync-badge" style="display:none; margin-left:8px; color:#2271b1; font-size:0.85em;">⟳ syncing…</span>
                                         </p>
@@ -386,15 +386,15 @@ class NFT_SaaS_Platform_Settings {
                         <div class="form-section info-box">
                             <h2>💰 Royalty Information</h2>
                             <p>
-                                <strong>Platform Royalty: 2%</strong><br>
-                                With every NFT sale, a 2% commission is automatically sent to your platform wallet.
-                                Works on OpenSea, Blur, LooksRare, and all marketplaces (ERC2981).
+                                <strong>Platform Fee: 3%</strong><br>
+                                With every NFT sale, a 3% commission is automatically sent to your platform wallet.
+                                Collected on-chain at the moment of purchase (POL, USDC, or USDT).
                             </p>
                             <ul>
-                                <li>✓ When NFT is minted: 2% royalty is set</li>
-                                <li>✓ On first sale: 2% royalty goes to the platform</li>
-                                <li>✓ On resale: 2% royalty goes to the platform again</li>
-                                <li>✓ On OpenSea etc.: Automatic royalty deduction is applied</li>
+                                <li>✓ On every sale: 3% fee goes to the platform instantly</li>
+                                <li>✓ 97% goes directly to the artist wallet</li>
+                                <li>✓ Accepted currencies: POL, USDC, USDT (Polygon Mainnet)</li>
+                                <li>✓ Contract verified on PolygonScan (trustless)</li>
                             </ul>
                         </div>
                         
@@ -763,7 +763,7 @@ class NFT_SaaS_Platform_Settings {
     
     private function get_total_royalty() {
         // Platform'dan fetch et
-        return '2% of every sale';
+        return '3% of every sale';
     }
     
     private function get_active_users() {

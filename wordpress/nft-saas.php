@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       NFT SaaS – Gasless NFT Marketplace
  * Plugin URI:        https://github.com/spntnhub/nft-saas
- * Description:       Sell your artwork as NFTs directly from WordPress — no gas fees for artists. Buyers pay gas at purchase. Platform earns 2% commission.
+ * Description:       Sell your artwork as NFTs directly from WordPress — no gas fees for artists. Buyers pay gas at purchase. Platform earns 3% fee (POL, USDC, USDT).
  * Version:           1.0.0
  * Author:            spntn
  * Author URI:        https://spntn.com
