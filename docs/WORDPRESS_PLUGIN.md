@@ -1,6 +1,6 @@
 # NFT SaaS — WordPress Plugin Guide
 
-Sell your digital art as NFTs directly from your WordPress site. Buyers pay on‑chain with their own wallet — you receive **98% of every sale** automatically. Zero upfront cost for you.
+Sell your digital art as NFTs directly from your WordPress site. Buyers pay on‑chain with their own wallet — you receive **97% of every sale** automatically. Zero upfront cost for you.
 
 ---
 
@@ -96,8 +96,9 @@ MetaMask opens → buyer pays (price + gas)
   ↓
 Smart contract mints NFT to buyer's wallet
   ↓
-98% of sale → your Earnings Wallet  (instant, on-chain)
- 2% royalty → platform  (on every resale via ERC-2981)
+97% of sale → your Earnings Wallet  (instant, on-chain)
+ 3% fee     → platform  (on every sale)
+ 3% royalty → platform  (on every resale via ERC-2981)
 ```
 
 No intermediary holds funds. The smart contract transfers directly.
@@ -128,7 +129,7 @@ Recommended IPFS pinning services: [Pinata](https://pinata.cloud) (free tier ava
 
 | Chain | Currency | Contract |
 |---|---|---|
-| Polygon Mainnet | POL | `0x1AFd1b0D36Db1bb8E9Cc0f359e37A76313270837` |
+| Polygon Mainnet | POL, USDC, USDT | `0xF912D97BB2fF635c3D432178e46A16930B5Af51A` |
 | Ethereum Mainnet | ETH | *(deploy your own)* |
 | Base Mainnet | ETH | *(deploy your own)* |
 | Sepolia Testnet | ETH | *(for testing)* |
@@ -163,7 +164,7 @@ Update it in the NFT SaaS dashboard. The WordPress plugin syncs automatically on
 |---|---|
 | `API key required` error on buy | Your API Key is not saved. Go to Settings → re-enter and Save. |
 | `artistAddress does not match` | Your registered wallet doesn't match the one signing. Validate API Key to re-sync. |
-| `Price too low` error | Minimum price is 0.00001 ETH/POL. Increase the listing price. |
+| `Price too low` error | Minimum price on Polygon is 1 POL / 5 USDC / 5 USDT. Increase the listing price. |
 | Buy button not showing | Ensure the NFT block/shortcode is added and settings are saved. |
 | Wrong network badge on button | Buyer is on a different chain. MetaMask will prompt to switch automatically. |
 

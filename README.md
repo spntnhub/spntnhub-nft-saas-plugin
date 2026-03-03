@@ -1,6 +1,6 @@
 # NFT SaaS — CMS Plugins
 
-Sell digital art as NFTs directly from WordPress or Kirby CMS. Buyers pay on-chain — you receive **98% of every sale** automatically. Zero upfront cost.
+Sell digital art as NFTs directly from WordPress or Kirby CMS. Buyers pay on-chain — you receive **97% of every sale** automatically. Zero upfront cost.
 
 ---
 
@@ -19,8 +19,9 @@ Sell digital art as NFTs directly from WordPress or Kirby CMS. Buyers pay on-cha
 You list artwork with a price  →  no gas, nothing on-chain yet
 Buyer clicks "Buy Now"         →  MetaMask opens
 Buyer pays (price + gas)       →  smart contract mints NFT to buyer
-                                   98% → your wallet  (instant)
-                                    2% → platform royalty (every resale)
+                                   97% → your wallet  (instant)
+                                    3% → platform fee  (every sale)
+                                    3% → royalty on every resale  (ERC-2981)
 ```
 
 - **Lazy minting** — NFT is minted on-chain only at point of sale

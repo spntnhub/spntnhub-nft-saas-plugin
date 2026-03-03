@@ -1,6 +1,6 @@
 # NFT SaaS — Kirby CMS Plugin Guide
 
-Sell your digital art as NFTs directly from your Kirby site. Buyers pay on-chain with their own wallet — you receive **98% of every sale** automatically.
+Sell your digital art as NFTs directly from your Kirby site. Buyers pay on-chain with their own wallet — you receive **97% of every sale** automatically.
 
 ---
 
@@ -44,9 +44,9 @@ return [
     'nft-saas.api_key'         => 'nfts_your_api_key_here',
 
     // Smart contract address on Polygon Mainnet (pre-configured)
-    'nft-saas.contract_address' => '0x1AFd1b0D36Db1bb8E9Cc0f359e37A76313270837',
+    'nft-saas.contract_address' => '0xF912D97BB2fF635c3D432178e46A16930B5Af51A',
 
-    // Your EVM wallet address — where 98% of each sale is sent
+    // Your EVM wallet address — where 97% of each sale is sent
     'nft-saas.artist_wallet'   => '0xYourWalletAddress',
 ];
 ```
@@ -112,8 +112,9 @@ MetaMask opens → buyer pays (price + gas)
   ↓
 Smart contract mints NFT to buyer's wallet
   ↓
-98% of sale → your artist_wallet  (instant, on-chain)
- 2% royalty → platform  (on every resale via ERC-2981)
+97% of sale → your artist_wallet  (instant, on-chain)
+ 3% fee     → platform  (on every sale)
+ 3% royalty → platform  (on every resale via ERC-2981)
   ↓
 Snippet calls Kirby Panel API to set nft_is_sold = true
 ```
@@ -143,7 +144,7 @@ If `nft_token_uri` is left blank, the file's Kirby URL is used as the token URI.
 
 | Chain | Currency | Contract |
 |---|---|---|
-| Polygon Mainnet | POL | `0x1AFd1b0D36Db1bb8E9Cc0f359e37A76313270837` |
+| Polygon Mainnet | POL, USDC, USDT | `0xF912D97BB2fF635c3D432178e46A16930B5Af51A` |
 | Ethereum Mainnet | ETH | Configure `nft-saas.contract_address_ethereum` |
 | Base Mainnet | ETH | Configure `nft-saas.contract_address_base` |
 | Sepolia Testnet | ETH | Configure `nft-saas.contract_address_sepolia` |
@@ -157,7 +158,7 @@ If `nft_token_uri` is left blank, the file's Kirby URL is used as the token URI.
 | Buy button doesn't appear | Check that `nft_is_for_sale` is toggled on in the Panel. |
 | `API key required` on purchase | Ensure `nft-saas.api_key` is set in `config.php`. |
 | `artistAddress does not match` | The `nft-saas.artist_wallet` must match the wallet registered with your API key. |
-| `Price too low` | Minimum is 0.00001 ETH/POL. Increase `nft_price` in the Panel. |
+| `Price too low` | Minimum on Polygon is 1 POL / 5 USDC / 5 USDT. Increase `nft_price` in the Panel. |
 | Sold state not persisting | Kirby Panel API must be accessible. Check Panel auth and CSRF settings. |
 
 ---
