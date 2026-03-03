@@ -111,6 +111,56 @@ class NFT_SaaS_Media_Integration {
             );
         }
 
+        // ── Per-image button overrides ────────────────────────────────────────
+        $ov_label    = get_post_meta( $post->ID, '_nft_btn_label',    true );
+        $ov_bg       = get_post_meta( $post->ID, '_nft_btn_bg',       true );
+        $ov_color    = get_post_meta( $post->ID, '_nft_btn_color',    true );
+        $ov_position = get_post_meta( $post->ID, '_nft_btn_position', true );
+
+        $form_fields['nft_btn_label'] = array(
+            'label' => __( 'Button Label', 'nft-saas' ),
+            'input' => 'text',
+            'value' => esc_attr( $ov_label ),
+            'helps' => 'Leave empty to use the global label from Settings. Use {price} and {currency} as placeholders.',
+        );
+
+        $bg_val    = $ov_bg    ?: get_option( 'nft_saas_btn_bg',    '#111111' );
+        $color_val = $ov_color ?: get_option( 'nft_saas_btn_color', '#ffffff' );
+
+        $form_fields['nft_btn_colors'] = array(
+            'label' => __( 'Button Colors', 'nft-saas' ),
+            'input' => 'html',
+            'html'  => '
+                <span style="margin-right:12px;">
+                    <label style="font-size:0.85em;color:#555;">Background</label><br>
+                    <input type="color" name="attachments[' . $post->ID . '][nft_btn_bg]"
+                        value="' . esc_attr( $bg_val ) . '"
+                        style="width:44px;height:28px;padding:2px;cursor:pointer;border:1px solid #ccc;border-radius:4px;">
+                </span>
+                <span>
+                    <label style="font-size:0.85em;color:#555;">Text</label><br>
+                    <input type="color" name="attachments[' . $post->ID . '][nft_btn_color]"
+                        value="' . esc_attr( $color_val ) . '"
+                        style="width:44px;height:28px;padding:2px;cursor:pointer;border:1px solid #ccc;border-radius:4px;">
+                </span>',
+            'helps' => 'Leave at global defaults unless this image needs a different style.',
+        );
+
+        $pos_global = get_option( 'nft_saas_btn_position', 'below' );
+        $pos_val    = $ov_position ?: '';
+        $form_fields['nft_btn_position'] = array(
+            'label' => __( 'Button Position', 'nft-saas' ),
+            'input' => 'html',
+            'html'  => '
+                <select name="attachments[' . $post->ID . '][nft_btn_position]">
+                    <option value=""'  . selected( $pos_val, '',        false ) . '>— Use global (' . esc_html( $pos_global ) . ')</option>
+                    <option value="below"'   . selected( $pos_val, 'below',   false ) . '>Below image</option>
+                    <option value="above"'   . selected( $pos_val, 'above',   false ) . '>Above image</option>
+                    <option value="overlay"' . selected( $pos_val, 'overlay', false ) . '>Overlay</option>
+                </select>',
+            'helps' => 'Override the global position for this image only.',
+        );
+
         return $form_fields;
     }
 
@@ -148,6 +198,23 @@ class NFT_SaaS_Media_Integration {
         // Number of Editions (supply)
         if ( isset( $attachment['nft_supply'] ) ) {
             update_post_meta( $id, '_nft_supply', max( 1, intval( $attachment['nft_supply'] ) ) );
+        }
+
+        // Per-image button overrides
+        if ( isset( $attachment['nft_btn_label'] ) ) {
+            update_post_meta( $id, '_nft_btn_label', sanitize_text_field( $attachment['nft_btn_label'] ) );
+        }
+        if ( isset( $attachment['nft_btn_bg'] ) ) {
+            $hex = sanitize_hex_color( $attachment['nft_btn_bg'] );
+            if ( $hex ) update_post_meta( $id, '_nft_btn_bg', $hex );
+        }
+        if ( isset( $attachment['nft_btn_color'] ) ) {
+            $hex = sanitize_hex_color( $attachment['nft_btn_color'] );
+            if ( $hex ) update_post_meta( $id, '_nft_btn_color', $hex );
+        }
+        $allowed_positions = array( '', 'below', 'above', 'overlay' );
+        if ( isset( $attachment['nft_btn_position'] ) && in_array( $attachment['nft_btn_position'], $allowed_positions, true ) ) {
+            update_post_meta( $id, '_nft_btn_position', $attachment['nft_btn_position'] );
         }
 
         return $post;
@@ -280,15 +347,41 @@ class NFT_SaaS_Media_Integration {
 
             $buy_html = $this->generate_buy_button_html( $attachment_id );
 
-            // Try to insert after the wrapping <figure> block that contains this image.
-            // Gutenberg wraps images in <figure class="wp-block-image ...">...</figure>
+            // Resolve position: per-image override → global setting → 'below'
+            $position = get_post_meta( $attachment_id, '_nft_btn_position', true )
+                     ?: get_option( 'nft_saas_btn_position', 'below' );
+
+            // Gutenberg <figure> pattern
             $pattern = '/(<figure[^>]*class="[^"]*wp-block-image[^"]*"[^>]*>(?:(?!<\/figure>).)*wp-image-' . $attachment_id . '(?:(?!<\/figure>).)*<\/figure>)/si';
+
             if ( preg_match( $pattern, $content ) ) {
-                $content = preg_replace( $pattern, '$1' . $buy_html, $content, 1 );
+                if ( $position === 'overlay' ) {
+                    $content = preg_replace(
+                        $pattern,
+                        '<div style="position:relative;display:inline-block;max-width:100%;">$1' .
+                        '<div style="position:absolute;bottom:8px;right:8px;">' . $buy_html . '</div></div>',
+                        $content, 1
+                    );
+                } elseif ( $position === 'above' ) {
+                    $content = preg_replace( $pattern, $buy_html . '$1', $content, 1 );
+                } else {
+                    $content = preg_replace( $pattern, '$1' . $buy_html, $content, 1 );
+                }
             } else {
-                // Classic editor: insert after the <img> tag itself
+                // Classic editor: <img> pattern
                 $img_pattern = '/(<img[^>]*class="[^"]*wp-image-' . $attachment_id . '[^"]*"[^>]*\/?>)/i';
-                $content = preg_replace( $img_pattern, '$1' . $buy_html, $content, 1 );
+                if ( $position === 'overlay' ) {
+                    $content = preg_replace(
+                        $img_pattern,
+                        '<div style="position:relative;display:inline-block;max-width:100%;">$1' .
+                        '<div style="position:absolute;bottom:8px;right:8px;">' . $buy_html . '</div></div>',
+                        $content, 1
+                    );
+                } elseif ( $position === 'above' ) {
+                    $content = preg_replace( $img_pattern, $buy_html . '$1', $content, 1 );
+                } else {
+                    $content = preg_replace( $img_pattern, '$1' . $buy_html, $content, 1 );
+                }
             }
         }
 
@@ -302,6 +395,20 @@ class NFT_SaaS_Media_Integration {
         $supply     = intval( get_post_meta( $target_id, '_nft_supply',     true ) ?: 1 );
         $sold_count = intval( get_post_meta( $target_id, '_nft_sold_count', true ) ?: 0 );
         $remaining  = $supply - $sold_count;
+
+        // ── Resolve appearance: per-image override → global setting → hardcoded default ──
+        $btn_bg       = get_post_meta( $target_id, '_nft_btn_bg',    true )
+                     ?: get_option( 'nft_saas_btn_bg',    '#111111' );
+        $btn_color    = get_post_meta( $target_id, '_nft_btn_color', true )
+                     ?: get_option( 'nft_saas_btn_color', '#ffffff' );
+        $btn_label_tpl = get_post_meta( $target_id, '_nft_btn_label', true );
+        if ( ! $btn_label_tpl ) $btn_label_tpl = get_option( 'nft_saas_btn_label', 'Buy this NFT — {price} {currency}' );
+        $btn_show_net = (bool) get_option( 'nft_saas_btn_show_network', 1 );
+        $btn_radius   = intval( get_option( 'nft_saas_btn_radius', 6 ) );
+        $btn_css      = sanitize_html_class( get_option( 'nft_saas_btn_css_class', '' ) );
+
+        $btn_bg    = esc_attr( $btn_bg );
+        $btn_color = esc_attr( $btn_color );
 
         if ( $remaining <= 0 ) {
             $tx_hash = get_post_meta( $target_id, '_nft_tx_hash', true );
@@ -398,22 +505,45 @@ class NFT_SaaS_Media_Integration {
             'nonce'           => wp_create_nonce( 'nft_saas_buy_nonce' ),
             'supply'          => $supply,
             'soldCount'       => $sold_count,
+            'btnLabel'        => $btn_label_text,
         ) ), ENT_QUOTES, 'UTF-8' );
 
         $currency = esc_html( $cfg['currency'] );
+
+        // Build button label from template
+        $btn_label_text = esc_html( str_replace(
+            [ '{price}', '{currency}' ],
+            [ $price,    $cfg['currency'] ],
+            $btn_label_tpl
+        ) );
 
         // Editions label — only shown when supply > 1
         $editions_html = $supply > 1
             ? '<span class="nft-editions-remaining" style="font-size:0.72rem;color:#888;">' . $remaining . ' of ' . $supply . ' remaining</span>'
             : '';
 
+        // Network label
+        $network_html = $btn_show_net
+            ? '<span style="font-size:0.72rem;color:#aaa;white-space:nowrap;">' . esc_html( $cfg['chainName'] ) . '<span class="nft-network-status" style="margin-left:4px;"></span></span>'
+            : '<span class="nft-network-status" style="display:none;"></span>';
+
+        // Extra CSS class
+        $extra_class = $btn_css ? ' ' . $btn_css : '';
+
+        $button_style = 'display:inline-flex;align-items:center;gap:6px;'
+            . 'background:' . $btn_bg . ';'
+            . 'color:' . $btn_color . ';'
+            . 'border:none;border-radius:' . $btn_radius . 'px;'
+            . 'padding:8px 16px;font-size:0.82rem;font-weight:600;'
+            . 'letter-spacing:0.02em;cursor:pointer;white-space:nowrap;line-height:1.4;';
+
         $button = '
-        <div id="nft-buy-container-' . $target_id . '" class="nft-buy-container" style="display:inline-flex;flex-direction:column;gap:5px;margin:8px 0 16px;max-width:100%;">
+        <div id="nft-buy-container-' . $target_id . '" class="nft-buy-container' . $extra_class . '" style="display:inline-flex;flex-direction:column;gap:5px;margin:8px 0 16px;max-width:100%;">
             <div style="display:inline-flex;align-items:center;gap:10px;flex-wrap:wrap;">
-                <button class="nft-buy-btn" onclick=\'buyNft(' . $buy_data . ')\' style="display:inline-flex;align-items:center;gap:6px;background:#111;color:#fff;border:none;border-radius:6px;padding:8px 16px;font-size:0.82rem;font-weight:600;letter-spacing:0.02em;cursor:pointer;white-space:nowrap;line-height:1.4;">
-                    Buy this NFT &mdash; ' . esc_html( $price ) . '&thinsp;' . $currency . '
+                <button class="nft-buy-btn" onclick=\'buyNft(' . $buy_data . ')\' style="' . esc_attr( $button_style ) . '">
+                    ' . $btn_label_text . '
                 </button>
-                <span style="font-size:0.72rem;color:#aaa;white-space:nowrap;">' . esc_html( $cfg['chainName'] ) . '<span class="nft-network-status" style="margin-left:4px;"></span></span>
+                ' . $network_html . '
                 ' . $editions_html . '
             </div>
             <div class="nft-status-msg" style="font-size:0.78rem;font-weight:500;color:#555;"></div>
@@ -632,7 +762,7 @@ class NFT_SaaS_Media_Integration {
                                     const remainingEl = container.querySelector(".nft-editions-remaining");
                                     if (remainingEl) remainingEl.textContent = remaining + " of " + data.supply + " remaining";
                                     btn.disabled    = false;
-                                    btn.innerText   = "Buy this NFT \u2014 " + data.price + "\u202f" + data.chain.currency;
+                                    btn.innerText   = data.btnLabel || "Buy this NFT";
                                     msg.innerText   = "✅ Minted! " + remaining + " edition" + (remaining === 1 ? "" : "s") + " still available.";
                                     msg.style.color = "green";
                                     // Update local soldCount for next buyer

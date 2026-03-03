@@ -86,6 +86,14 @@ class NFT_SaaS_Platform_Settings {
         register_setting('nft_saas_group', 'nft_saas_contract_ethereum');
         register_setting('nft_saas_group', 'nft_saas_contract_base');
         register_setting('nft_saas_group', 'nft_saas_contract_sepolia');
+        // Button appearance
+        register_setting('nft_saas_group', 'nft_saas_btn_bg',       ['sanitize_callback' => 'sanitize_hex_color', 'default' => '#111111']);
+        register_setting('nft_saas_group', 'nft_saas_btn_color',    ['sanitize_callback' => 'sanitize_hex_color', 'default' => '#ffffff']);
+        register_setting('nft_saas_group', 'nft_saas_btn_label',    ['sanitize_callback' => 'sanitize_text_field', 'default' => 'Buy this NFT — {price} {currency}']);
+        register_setting('nft_saas_group', 'nft_saas_btn_show_network', ['sanitize_callback' => 'absint', 'default' => 1]);
+        register_setting('nft_saas_group', 'nft_saas_btn_position', ['sanitize_callback' => 'sanitize_text_field', 'default' => 'below']);
+        register_setting('nft_saas_group', 'nft_saas_btn_css_class',['sanitize_callback' => 'sanitize_html_class', 'default' => '']);
+        register_setting('nft_saas_group', 'nft_saas_btn_radius',   ['sanitize_callback' => 'absint', 'default' => 6]);
     }
 
     /**
@@ -436,6 +444,120 @@ class NFT_SaaS_Platform_Settings {
                                     </td>
                                 </tr>
                             </table>
+                        </div>
+
+                        <!-- Button Appearance -->
+                        <div class="form-section">
+                            <h2>🎨 Button Appearance</h2>
+                            <p class="description">Global defaults for all buy buttons. Individual images can override these in the Media Library.</p>
+                            <p class="description"><strong>Label placeholders:</strong> <code>{price}</code> → sale price, <code>{currency}</code> → POL / ETH / USDC</p>
+
+                            <?php
+                            $btn_bg           = get_option('nft_saas_btn_bg',           '#111111');
+                            $btn_color        = get_option('nft_saas_btn_color',        '#ffffff');
+                            $btn_label        = get_option('nft_saas_btn_label',        'Buy this NFT — {price} {currency}');
+                            $btn_show_network = get_option('nft_saas_btn_show_network', 1);
+                            $btn_position     = get_option('nft_saas_btn_position',     'below');
+                            $btn_css_class    = get_option('nft_saas_btn_css_class',    '');
+                            $btn_radius       = get_option('nft_saas_btn_radius',       6);
+                            ?>
+
+                            <table class="form-table">
+                                <tr>
+                                    <th scope="row"><label for="btn_label">Button Label</label></th>
+                                    <td>
+                                        <input type="text" id="btn_label" name="nft_saas_btn_label"
+                                            value="<?php echo esc_attr($btn_label); ?>"
+                                            class="regular-text"
+                                            placeholder="Buy this NFT — {price} {currency}">
+                                        <p class="description">Use <code>{price}</code> and <code>{currency}</code> as placeholders.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row">Button Colors</th>
+                                    <td style="display:flex;gap:24px;align-items:center;padding-top:10px;">
+                                        <label>
+                                            Background<br>
+                                            <input type="color" name="nft_saas_btn_bg"
+                                                id="btn_bg" value="<?php echo esc_attr($btn_bg); ?>"
+                                                style="width:48px;height:32px;padding:2px;cursor:pointer;border:1px solid #ccc;border-radius:4px;">
+                                        </label>
+                                        <label>
+                                            Text<br>
+                                            <input type="color" name="nft_saas_btn_color"
+                                                id="btn_color" value="<?php echo esc_attr($btn_color); ?>"
+                                                style="width:48px;height:32px;padding:2px;cursor:pointer;border:1px solid #ccc;border-radius:4px;">
+                                        </label>
+                                        <div id="btn-preview-wrap" style="margin-left:16px;">
+                                            <span style="font-size:0.75rem;color:#888;display:block;margin-bottom:4px;">Preview</span>
+                                            <button id="btn-preview" disabled
+                                                style="background:<?php echo esc_attr($btn_bg); ?>;color:<?php echo esc_attr($btn_color); ?>;border:none;border-radius:<?php echo esc_attr($btn_radius); ?>px;padding:8px 16px;font-size:0.82rem;font-weight:600;cursor:default;opacity:0.9;">
+                                                <?php echo esc_html(str_replace(['{price}','{currency}'], ['10','POL'], $btn_label)); ?>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="btn_radius">Border Radius (px)</label></th>
+                                    <td>
+                                        <input type="number" id="btn_radius" name="nft_saas_btn_radius"
+                                            value="<?php echo esc_attr($btn_radius); ?>"
+                                            min="0" max="50" class="small-text">
+                                        <p class="description">0 = square, 6 = default, 24 = pill shape.</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="btn_show_network">Show Network Label</label></th>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" id="btn_show_network" name="nft_saas_btn_show_network"
+                                                value="1" <?php checked($btn_show_network, 1); ?>>
+                                            Show "Polygon Mainnet" label next to the button
+                                        </label>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="btn_position">Default Position</label></th>
+                                    <td>
+                                        <select id="btn_position" name="nft_saas_btn_position">
+                                            <option value="below"   <?php selected($btn_position,'below');   ?>>Below image (default)</option>
+                                            <option value="above"   <?php selected($btn_position,'above');   ?>>Above image</option>
+                                            <option value="overlay" <?php selected($btn_position,'overlay'); ?>>Overlay (bottom-right corner of image)</option>
+                                        </select>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th scope="row"><label for="btn_css_class">Custom CSS Class</label></th>
+                                    <td>
+                                        <input type="text" id="btn_css_class" name="nft_saas_btn_css_class"
+                                            value="<?php echo esc_attr($btn_css_class); ?>"
+                                            class="regular-text"
+                                            placeholder="e.g. my-nft-btn">
+                                        <p class="description">Extra class added to every buy button — useful for theme CSS integration.</p>
+                                    </td>
+                                </tr>
+                            </table>
+
+                            <script>
+                            (function(){
+                                function updatePreview(){
+                                    var bg  = document.getElementById('btn_bg').value;
+                                    var tc  = document.getElementById('btn_color').value;
+                                    var lbl = document.getElementById('btn_label').value
+                                                .replace('{price}','10').replace('{currency}','POL');
+                                    var r   = document.getElementById('btn_radius').value || 6;
+                                    var btn = document.getElementById('btn-preview');
+                                    btn.style.background    = bg;
+                                    btn.style.color         = tc;
+                                    btn.style.borderRadius  = r + 'px';
+                                    btn.textContent         = lbl;
+                                }
+                                ['btn_bg','btn_color','btn_label','btn_radius'].forEach(function(id){
+                                    var el = document.getElementById(id);
+                                    if(el) el.addEventListener('input', updatePreview);
+                                });
+                            })();
+                            </script>
                         </div>
 
                         <?php submit_button('Save Settings', 'primary', 'submit', true); ?>
