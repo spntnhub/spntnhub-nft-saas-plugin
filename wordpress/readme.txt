@@ -1,9 +1,9 @@
 === NFT SaaS – Gasless NFT Marketplace ===
 Contributors: spntn
-Tags: nft, blockchain, polygon, web3, gasless, marketplace, digital art
+Tags: nft, blockchain, polygon, web3, gasless
 Requires at least: 6.0
-Tested up to: 6.7
-Stable tag: 1.0.0
+Tested up to: 6.9
+Stable tag: 1.3.0
 Requires PHP: 8.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -35,7 +35,7 @@ Sell your artwork as NFTs directly from WordPress. No gas fees for artists — b
 = Requirements =
 
 * MetaMask or any EVM-compatible browser wallet (for buyers)
-* A free account on the NFT SaaS platform — [get your API key here](https://github.com/spntnhub/nft-saas)
+* A free account on the NFT SaaS platform — [github.com/spntnhub/nft-saas-wp](https://github.com/spntnhub/nft-saas-wp)
 
 == Installation ==
 
@@ -74,6 +74,47 @@ Polygon Mainnet is preconfigured and requires no setup. Ethereum Mainnet, Base, 
 = What if a buyer doesn't have a wallet? =
 
 The buy button will prompt them to install MetaMask. Wallet-less purchasing is not yet supported.
+
+== External services ==
+
+The NFT SaaS plugin interacts with several external services:
+
+- **NFT SaaS Backend API**
+  - URL: https://nft-saas-production.up.railway.app
+  - Purpose: Handles authentication, project management, mint signatures, webhook events, and IPFS uploads. All plugin features rely on this API for core operations.
+
+- **Polygon Mainnet**
+  - Purpose: NFT minting and verification are performed on Polygon Mainnet via smart contracts. The plugin interacts with Polygon using ethers.js.
+
+- **IPFS**
+  - Purpose: NFT metadata and media files are uploaded to IPFS for decentralized storage.
+
+- **Explorer Links**
+  - Purpose: Plugin provides links to Polygon block explorers (e.g., Polygonscan) for transaction and token verification.
+
+API keys and sensitive credentials are stored server-side and never exposed to frontend users.
+
+This plugin connects to the NFT SaaS backend and Pinata IPFS to:
+
+* Activate the plugin and manage API keys (`POST /api/auth/activate`)
+* Upload artwork and metadata to IPFS via Pinata (`POST /api/v2/nft/upload`)
+* Generate backend-signed lazy-mint vouchers (`POST /api/v2/nft/sign`)
+* Record on-chain mint events (`POST /api/v2/nft/record`)
+
+The API key is stored in WordPress and all requests are made server-side (PHP). Your artwork is uploaded to IPFS — a permanent, decentralised file network.
+
+**Backend URL:** `https://nft-saas-production.up.railway.app`
+**Terms of Use:** https://spntn.com/terms
+**Privacy Policy:** https://spntn.com/privacy
+
+**Pinata (IPFS):** artwork files and metadata are pinned via Pinata.
+**Privacy policy:** https://www.pinata.cloud/privacy
+
+ethers.js (v6) is loaded from cdnjs.cloudflare.com for buyer wallet interactions.
+**Privacy policy:** https://www.cloudflare.com/privacypolicy/
+
+Data sent: artwork files, wallet addresses, transaction hashes.
+Data transmitted when: on plugin activation, on NFT listing, on buyer purchase.
 
 == Screenshots ==
 
