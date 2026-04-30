@@ -110,11 +110,10 @@ The API key is stored in WordPress and all requests are made server-side (PHP). 
 **Pinata (IPFS):** artwork files and metadata are pinned via Pinata.
 **Privacy policy:** https://www.pinata.cloud/privacy
 
-ethers.js (v6) is loaded from cdnjs.cloudflare.com for buyer wallet interactions.
-**Privacy policy:** https://www.cloudflare.com/privacypolicy/
+== Upgrade Notice ==
 
-Data sent: artwork files, wallet addresses, transaction hashes.
-Data transmitted when: on plugin activation, on NFT listing, on buyer purchase.
+= 1.3.0 =
+Recommended update. Fixes fatal activation error and loads assets only where needed.
 
 == Screenshots ==
 
@@ -125,17 +124,20 @@ Data transmitted when: on plugin activation, on NFT listing, on buyer purchase.
 
 == Changelog ==
 
-= 1.0.0 =
-* Initial release
-* Lazy minting via Polygon Mainnet
-* IPFS metadata upload via Pinata
-* Multi-chain support (Polygon, ETH, Base, Sepolia)
-* One-click plugin activation
-* MetaMask buy flow with auto network switch
-* Redis-cached signatures for fast buy button load
-* 3% on-chain platform fee (POL, USDC, USDT — Polygon Mainnet)
-
-== Upgrade Notice ==
+= 1.3.0 =
+* Fixed class name mismatches causing fatal PHP errors on activation.
+* Removed admin JavaScript from inline script tags — moved to admin_enqueue_scripts hook.
+* Removed admin CSS and JS from frontend (wp_enqueue_scripts) — admin assets now load only in wp-admin.
+* Registered Gutenberg block assets via enqueue_block_editor_assets hook.
+* Removed emoji from admin notice.
+* README.md rewritten with complete setup guide.
 
 = 1.0.0 =
-Initial release.
+* Initial release.
+* Lazy minting via Polygon Mainnet.
+* IPFS metadata upload via Pinata.
+* Multi-chain support (Polygon, ETH, Base, Sepolia).
+* One-click plugin activation.
+* MetaMask buy flow with auto network switch.
+* Redis-cached signatures for fast buy button load.
+* 3% on-chain platform fee (POL, USDC, USDT — Polygon Mainnet).
